@@ -1,0 +1,12 @@
+#Login
+1. Đúng tk đúng mk
+2. Đúng tk sai mk -> Please enter the correct username and password. Note that both fields may be case-sensitive.
+3. Sai tk đúng mk -> Please enter the correct username and password. Note that both fields may be case-sensitive.
+4. Sai tk sai mk -> Please enter the correct username and password. Note that both fields may be case-sensitive.
+5. Tk có dấu cách giữa
+6. username lớn hơn max_length
+7. password nhỏ hơn min_length
+8. password lơn hơn max_length
+9. username nhỏ hơn min_length
+10. username chưa kí tự đặt biệt 
+11. account được đăng nhập ở nơi khác (dựa vào session time)
