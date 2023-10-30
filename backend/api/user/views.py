@@ -16,7 +16,7 @@ class UserView(viewsets.ModelViewSet):
     ordering = ['-updated']
     
     def get_queryset(self):
-        if self.request.user_is_superuser:
+        if self.request.user_i:
             return User.objects.all()
     def get_object(self):
         lookup_field_value= self.kwargs[self.lookup_field] #return id

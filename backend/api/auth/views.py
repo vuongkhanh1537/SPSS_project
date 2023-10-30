@@ -29,7 +29,7 @@ class LoginViewSet(ModelViewSet, TokenObtainPairView):
 class RegistrationViewSet(ModelViewSet, TokenObtainPairView):
     serializer_class = RegisterSerializer
     permission_classes = (AllowAny,)
-    http_method_names = ['post']
+    http_method_names = ['get','post']
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
