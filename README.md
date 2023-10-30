@@ -33,7 +33,16 @@ npm i
 
 npm start
 
+npm install firebase
+
+npm install -g firebase-tools
+
 
 For deploying
+
+firebase login
+firebase init
+firebase deploy
+
 npm run build
 
