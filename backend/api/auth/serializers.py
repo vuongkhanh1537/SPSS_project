@@ -18,17 +18,27 @@ class LoginSerializer(TokenObtainPairSerializer):
         data['access']=str(refresh.access_token)
         
         if api_settings.UPDATE_LAST_LOGIN:
-            update_last_login(None, self.user)
+            update_last_login(user= self.user)
         return data
     
 class RegisterSerializer(UserSerializer):
+    Major = [
+        ("CSE", "Khoa học và kĩ thuật máy tính"),
+        ("SO", "Sophomore"),
+        ("JR", "Junior"),
+        ("SR", "Senior"),
+        ("GR", "Graduate"),
+    ]
     password = serializers.CharField(max_length=128, min_length=8, write_only=True, required=True)
-    # email = serializers.EmailField(required=True, write_only=True, max_length=128)
+    email = serializers.EmailField(required=True, write_only=True, max_length=128)
     username = serializers.CharField(max_length=128, min_length=8, write_only=True, required=True)
-
+    last_name= serializers.CharField(max_length =10,write_only=True, required = True)
+    first_name= serializers.CharField(max_length =10,write_only=True, required = True)
+    phone= serializers.CharField(max_length =10,write_only=True, required = True)
+    major = serializers.ChoiceField(choices=Major, default="CSE")
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'is_active', 'created', 'updated']
+        fields = ['id', 'username','first_name', 'last_name', 'email','phone', 'password','major', 'is_active','is_staff','is_superuser','date_joined']
 
     def create(self, validated_data):
         try:

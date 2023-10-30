@@ -1,5 +1,5 @@
 ## API User:
-# Path 
+Path: 
 ```sh
 /api/users #để xem toàn bộ user
 ```
