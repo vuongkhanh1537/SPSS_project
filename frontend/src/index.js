@@ -3,11 +3,8 @@ import ReactDOM from 'react-dom/client';
 import 'bootstrap/dist/css/bootstrap.css';
 import App from './App';
 import './index.scss';
-import rootReducer from './features/reducers';
 import { Provider } from 'react-redux'
-import { createStore } from 'redux';
-
-const store = createStore(rootReducer);
+import store from './store';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

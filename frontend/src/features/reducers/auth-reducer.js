@@ -1,4 +1,5 @@
-import { getUserFromLocalStorage } from "../../utils/localStorage"
+import { getUserFromLocalStorage, removeUserFromLocalStorage } from "../../utils/localStorage"
+import { LOGIN_FAIL, LOGIN_SUCCESS, LOGOUT } from "../types/auth-types";
 
 const initialState = {
     user: getUserFromLocalStorage(),
@@ -7,9 +8,21 @@ const initialState = {
 
 const authReducer = (state = initialState, action) => {
     switch(action.type) {
-        case 'LOGIN_SUCCESS': { 
-            return { ...state, user: 'abc' }
+        case LOGIN_SUCCESS: { 
+            return { 
+                ...state, 
+                user: 'abc', 
+                loading: false 
+            }
         }
+        case LOGIN_FAIL: 
+        case LOGOUT:
+            removeUserFromLocalStorage();
+            return {
+                ...state,
+                user: null,
+                loading: false,
+            };
         default: 
             return state;
     }
