@@ -1,11 +1,25 @@
-import React from 'react'
+import React, { useState } from 'react'
 import PrinterIntro from '../../assests/images/printer-intro.png'
 import LogoHCMUT from '../../assests/images/LogoHCMUT.png'
 import './login.scss'
 import { Link } from 'react-router-dom'
 import LoginWithHCMUT_SSO from '../LoginWithHCMUT_SSO/LoginWithHCMUT_SSO'
+import { useDispatch } from 'react-redux'
+import { login } from '../../features/actions/auth-actions'
 
 function Login() {
+    const [formData, setFormData] = useState({ username: '', password: '' });
+    const dispatch = useDispatch();
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value })
+    }
+
+    const handleSubmit = () => {
+        console.log('formData', formData)
+        dispatch(login(formData.username, formData.password))
+    }
+
     return (
         <div className='login'>
             <div className="login-content">
@@ -19,11 +33,11 @@ function Login() {
                 <div className='form'>
                     <div className="mb-3">
                         <label for="username" className="form-label">Tên đăng nhập</label>
-                        <input type="text" className="form-control" id="username" name='username' placeholder="" />
+                        <input type="text" className="form-control" id="username" name='username' placeholder="" onChange={handleChange} />
                     </div>
                     <div className="mb-3">
                         <label for="password" className="form-label">Mật khẩu</label>
-                        <input type="password" className="form-control" name='password' id="password" />
+                        <input type="password" className="form-control" name='password' id="password" onChange={handleChange} />
                     </div>
                     <div className='mb-5 d-flex justify-content-between'>
                         <div className="form-check">
@@ -35,7 +49,7 @@ function Login() {
                         <span style={{color: '#4B9CFC'}}>Quên mật khẩu</span>
                     </div>
                     <div className="d-grid gap-2">
-                        <button className="btn btn-primary login-btn-1" type="button">Đăng nhập</button>
+                        <button className="btn btn-primary login-btn-1" type="button" onClick={handleSubmit}>Đăng nhập</button>
                         <Link className='d-block' to='/login_SSO'>
                             <button className="btn btn-primary login-btn-2" type="button">
                                 <img src={LogoHCMUT} />
