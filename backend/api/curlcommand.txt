@@ -1,0 +1,1 @@
+curl --header "Content-Type: application/json" -X POST http://127.0.0.1:8000/api/user/create/ --data '{"username":"thanh.bui","password":"123",email:"asd@gmail.com"}'
