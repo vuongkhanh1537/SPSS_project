@@ -1,24 +1,38 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import PrinterIntro from '../../assests/images/printer-intro.png'
 import LogoHCMUT from '../../assests/images/LogoHCMUT.png'
 import './login.scss'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import LoginWithHCMUT_SSO from '../LoginWithHCMUT_SSO/LoginWithHCMUT_SSO'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { login } from '../../features/actions/auth-actions'
+import { toast } from 'react-toastify'
 
 function Login() {
     const [formData, setFormData] = useState({ username: '', password: '' });
     const dispatch = useDispatch();
+    const { user } = useSelector((state) => state.auth);
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
     }
 
     const handleSubmit = () => {
-        console.log('formData', formData)
-        dispatch(login(formData.username, formData.password))
+        if (!formData.username || !formData.password) {
+            toast.warning('Vui lòng điền đầy đủ thông tin')
+        } else {
+            dispatch(login(formData.username, formData.password))
+        }
     }
+
+    useEffect(() => {
+		if (user) {
+            setTimeout(() => {
+                navigate('/');
+            }, 2000);
+		}
+	}, [user]);
 
     return (
         <div className='login'>

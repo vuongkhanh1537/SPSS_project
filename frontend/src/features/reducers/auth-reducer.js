@@ -1,4 +1,5 @@
-import { getUserFromLocalStorage, removeUserFromLocalStorage } from "../../utils/localStorage"
+import { toast } from "react-toastify";
+import { addUserToLocalStorage, getUserFromLocalStorage, removeUserFromLocalStorage } from "../../utils/localStorage"
 import { LOGIN_FAIL, LOGIN_SUCCESS, LOGOUT } from "../types/auth-types";
 
 const initialState = {
@@ -9,6 +10,7 @@ const initialState = {
 const authReducer = (state = initialState, action) => {
     switch(action.type) {
         case LOGIN_SUCCESS: { 
+            addUserToLocalStorage({user: 'abc'})
             return { 
                 ...state, 
                 user: 'abc', 
