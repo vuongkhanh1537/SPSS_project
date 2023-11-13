@@ -1,0 +1,12 @@
+.prev-next-action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 20px;
+    .action {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #3CC9FF;
+    }
+}
