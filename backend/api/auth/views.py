@@ -1,10 +1,12 @@
-from rest_framework import status, permissions
+from rest_framework import status, permissions, viewsets
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, generics
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import mixins
 from .serializers import CustomUserSerializer
+from .models import  User, Person 
+from django.shortcuts import get_object_or_404
 
 class CustomUserCreate(generics.GenericAPIView):
     permission_classes = (permissions.AllowAny,)
@@ -19,7 +21,6 @@ class CustomUserCreate(generics.GenericAPIView):
                 json = serializer.data
                 return Response(json, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class HelloWorldView(APIView):
 

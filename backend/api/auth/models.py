@@ -3,7 +3,8 @@ from django.db import models
 from django.contrib.auth.models import Group
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-
+# from django.contrib.auth.models import User
+from rest_framework import reverse
 
 class UserManager(UserManager):
     
@@ -50,7 +51,7 @@ class UserManager(UserManager):
 
     def create_officer(self, officer):
 
-        username = f"{officer.first_name}.{officer.last_name}{officer.officierID}"
+        username = f"{officer.first_name}.{officer.last_name}{officer.officerID}"
         password = "12345678"
         email = f"{username}@hcmut.edu.vn"
         return self.create_staff(username=username, password=password, email=email)
@@ -61,6 +62,7 @@ class UserManager(UserManager):
         # user.groups.add(pm_group)
 class User(AbstractBaseUser, PermissionsMixin):
     
+    id= models.AutoField(primary_key=True)
     username = models.CharField(db_index=True, max_length=30, unique=True, null= True, blank = True)
     email = models.EmailField(db_index=True, unique=True,  null=True, blank=True)
     
@@ -84,8 +86,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.username
-
-# Create your models here.
+    def get_absolute_url(self):
+        return reverse('users:detail', kwargs={'username': self.username})
+# # Create your models here.
 class Person(models.Model):
     user_id = models.OneToOneField(User,parent_link=True,primary_key=True, on_delete=models.CASCADE)
     first_name= models.CharField(max_length=10,null=False)
@@ -94,35 +97,7 @@ class Person(models.Model):
     
     def get_full_name(self):
         return self.first_name +' '+ self.last_name
+    
     class Meta:
         abstract = True
         ordering = ['user_id']
-class Major(models.IntegerChoices):
-    CSE = 1, "Khoa học và kỹ thuật máy tính"
-    QLCN = 2, "Quản lý công nghiệp"
-    
-class Student(Person):
-    studentID= models.CharField(max_length=10, null = False)
-    major = models.IntegerField(choices= Major.choices,default = Major.CSE)
-    
-    class Meta(Person.Meta):
-        db_table = "student_info"
-    def save(self, *args, **kwargs):
-        if not self.pk:  # Only create the user if it doesn't exist
-            user = User.objects.create_student(self)
-            student_group, _ = Group.objects.get_or_create(name='student')
-            user.groups.add(student_group)
-            self.user_id = user
-            super().save(*args, **kwargs)
-class Officer(Person):
-    officierID = models.CharField(max_length=10,unique= True, null = False)
-    position = models.CharField(max_length=30, default="Officer")
-    class Meta(Person.Meta):
-        db_table = "officier_info"
-    def save(self, *args, **kwargs):
-        if not self.pk:  # Only create the user if it doesn't exist
-            user = User.objects.create_officer(self)
-            student_group, _ = Group.objects.get_or_create(name='pm')
-            user.groups.add(student_group)
-            self.user_id = user
-            super().save(*args, **kwargs)

@@ -2,11 +2,14 @@ from rest_framework import serializers
 from .models import User
 from django.core.exceptions import ObjectDoesNotExist
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=User
-        fields = ['id','username','email', 'is_active','is_staff']
-        read_only_fields = ['is_active']
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+
+# User = get_user_model()
+
+class UserPublicSerializer(serializers.Serializer):
+    username = serializers.CharField(read_only=True)
+    id = serializers.IntegerField(read_only=True)
  
 class CustomUserSerializer(serializers.ModelSerializer):
     """
