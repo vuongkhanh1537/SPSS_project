@@ -1,0 +1,21 @@
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 80px;
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        color: #4B9CFC;
+        .user {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .icon {
+            width: 24px;
+            height: 24px;
+        }
+    }
+}

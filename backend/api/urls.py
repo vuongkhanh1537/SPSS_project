@@ -10,6 +10,7 @@ from rest_framework_simplejwt.views import (
 
 from . import views
 from api.printer.views import *
+from api.auth.views import HelloWorldView
 # from .views import api_home
 router = DefaultRouter()
 router.register('model', ModelPrinterViewSet)
@@ -22,11 +23,11 @@ model_list_view = ModelPrinterViewSet.as_view({
 
 urlpatterns = [
     path('auth/', obtain_auth_token),
-    path('token/obtain', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/obtain/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     #printer
     # path('add_model_printer', model_printer_create),
-    # path('add_feature', feature_create)
+    path('hello/', HelloWorldView.as_view()),
     path('',include(router.urls))
 ]

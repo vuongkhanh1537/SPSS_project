@@ -59,8 +59,10 @@ class ModelPrinterSerializer(serializers.ModelSerializer):
 
         return instance
 
+class PrinterSerializer(serializers.ModelSerializer):
+    pass
 
-class QuestionSearchSerializer(serializers.Serializer):
+class PrinterSearchSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     model = serializers.CharField()
     created_at = serializers.DateTimeField()
