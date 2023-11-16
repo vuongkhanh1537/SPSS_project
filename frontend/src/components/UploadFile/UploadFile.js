@@ -1,11 +1,13 @@
 import { useState } from "react";
 import shortid from 'shortid';
 import './UploadFile.scss';
-import { FaCloudUploadAlt, FaTimes } from 'react-icons/fa'
+import { FaCloudUploadAlt, FaFileExcel, FaFilePdf, FaFilePowerpoint, FaFileWord, FaTimes } from 'react-icons/fa'
+import { toast } from 'react-toastify'
+import { savePrintingProperties } from "../../features/actions/printing-actions";
 
-const UploadFile = () => {
-    const [selectedfile, SetSelectedFile] = useState([]);
-    const [Files, SetFiles] = useState([]);
+const UploadFile = ({ selectedfile, setSelectedFile }) => {
+    // const [selectedfile, SetSelectedFile] = useState([]);
+    // const [Files, SetFiles] = useState([]);
 
 
     const filesizes = (bytes, decimals = 2) => {
@@ -20,25 +22,36 @@ const UploadFile = () => {
     const InputChange = (e) => {
         // --For Multiple File Input
         let images = [];
-        console.log('e.target.files', e.target.files)
         for (let i = 0; i < e.target.files.length; i++) {
+            if (!e.target.files[i].name.match(/.(doc|docx|xls|xlsx|ppt|pptx|pdf)$/i)) {
+                toast.error('Định dạng file này không cho phép');
+                return;
+            }
             images.push((e.target.files[i]));
             let reader = new FileReader();
             let file = e.target.files[i];
             reader.onloadend = () => {
-                SetSelectedFile((preValue) => {
-                    return [
-                        ...preValue,
-                        {
-                            id: shortid.generate(),
-                            filename: e.target.files[i].name,
-                            filetype: e.target.files[i].type,
-                            fileimage: reader.result,
-                            datetime: e.target.files[i].lastModifiedDate.toLocaleString('en-IN'),
-                            filesize: filesizes(e.target.files[i].size)
-                        }
-                    ]
-                });
+                setSelectedFile([{
+                    id: shortid.generate(),
+                    filename: e.target.files[i].name,
+                    filetype: e.target.files[i].type,
+                    fileimage: reader.result,
+                    datetime: e.target.files[i].lastModifiedDate.toLocaleString('en-IN'),
+                    filesize: filesizes(e.target.files[i].size)
+                }])
+                // SetSelectedFile((preValue) => {
+                //     return [
+                //         ...preValue,
+                //         {
+                //             id: shortid.generate(),
+                //             filename: e.target.files[i].name,
+                //             filetype: e.target.files[i].type,
+                //             fileimage: reader.result,
+                //             datetime: e.target.files[i].lastModifiedDate.toLocaleString('en-IN'),
+                //             filesize: filesizes(e.target.files[i].size)
+                //         }
+                //     ]
+                // });
             }
             if (e.target.files[i]) {
                 reader.readAsDataURL(file);
@@ -50,7 +63,7 @@ const UploadFile = () => {
     const DeleteSelectFile = (id) => {
         if (window.confirm("Are you sure you want to delete this Image?")) {
             const result = selectedfile.filter((data) => data.id !== id);
-            SetSelectedFile(result);
+            setSelectedFile(result);
         } else {
             // alert('No');
         }
@@ -67,13 +80,13 @@ const UploadFile = () => {
                             <div className="kb-data-box">
                                 <div className="kb-modal-data-title">
                                     <div className="kb-data-title">
-                                        <h6>Multiple File Upload With Preview</h6>
+                                        <h6>Tải tập tin lên (.doc, .docx, .xls, .xlsx, .ppt, .pptx, .pdf)</h6>
                                     </div>
                                 </div>
                                 <form>
                                     <div className="kb-file-upload">
                                         <div className="file-upload-box">
-                                            <input type="file" id="fileupload" className="file-upload-input" onChange={InputChange} multiple />
+                                            <input type="file" id="fileupload" className="file-upload-input" onChange={InputChange} />
                                             <p> </p>
                                             <span><FaCloudUploadAlt className="cloud-icon" /></span>
                                             <span>Drag and drop or <span className="file-link">Choose your files</span></span>
@@ -86,6 +99,14 @@ const UploadFile = () => {
                                                 return (
                                                     <div className="file-atc-box" key={id}>
                                                         {
+                                                            filename.match(/.(pdf)$/i) ?
+                                                                <div className="file-image"> <FaFilePdf className="file-icon" style={{color: '#ee232b'}} /> </div> :
+                                                            filename.match(/.(doc|docx)$/i) ?
+                                                                <div className="file-image"> <FaFileWord className="file-icon" style={{color: '#1c6ac2'}} /> </div> :
+                                                            filename.match(/.(xls|xlsx)$/i) ?
+                                                                <div className="file-image"> <FaFileExcel className="file-icon" style={{color: '#27764b'}} /> </div> :
+                                                            filename.match(/.(ppt|pptx)$/i) ?
+                                                                <div className="file-image"> <FaFilePowerpoint className="file-icon" style={{color: '#d24a2b'}} /> </div> :
                                                             filename.match(/.(jpg|jpeg|png|gif|svg)$/i) ?
                                                                 <div className="file-image"> <img src={fileimage} alt="" /></div> :
                                                                 <div className="file-image"><i className="far fa-file-alt"></i></div>
