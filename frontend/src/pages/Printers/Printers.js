@@ -5,6 +5,8 @@ import Printer from '../../assests/images/printer.png'
 import { MdLocationOn } from 'react-icons/md'
 import { HiQueueList } from 'react-icons/hi2'
 import { FaClock, FaSearch } from 'react-icons/fa'
+import { useDispatch } from 'react-redux'
+import { removePrintingProperties } from '../../features/actions/printing-actions'
 
 const printers = [
   {
@@ -53,6 +55,7 @@ const printers = [
 
 function Printers() {
   const [selectedPrinterId, setSelectedPrinterId] = useState(printers[0].id);
+  const dispatch = useDispatch();
 
   return (
     <div className='printers-page'>
@@ -99,7 +102,7 @@ function Printers() {
           })
         }
       </div>
-      <PrevNextAction prevLink='/' prevText='Tài liệu' nextLink='/print-status' nextText='Tiến hành in' />
+      <PrevNextAction prevLink='/' prevText='Tài liệu' nextLink='/print-status' nextText='Tiến hành in' nextAction={() => dispatch(removePrintingProperties())} />
     </div>
   )
 }

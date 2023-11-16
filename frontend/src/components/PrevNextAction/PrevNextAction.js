@@ -3,7 +3,7 @@ import { FiArrowLeft, FiArrowRight } from 'react-icons/fi'
 import './PrevNextAction.scss'
 import { Link } from 'react-router-dom'
 
-function PrevNextAction({prevText, prevLink, nextText, nextLink }) {
+function PrevNextAction({prevText, prevLink, nextText, nextLink, nextAction }) {
   return (
     <div className='prev-next-action'>
         <div>
@@ -18,7 +18,7 @@ function PrevNextAction({prevText, prevLink, nextText, nextLink }) {
         <div>
             {
                 nextLink && nextText &&
-                <Link to={nextLink} className='action'>
+                <Link to={nextLink} className='action' onClick={nextAction}>
                     <span> { nextText } </span>
                     <FiArrowRight />
                 </Link>
