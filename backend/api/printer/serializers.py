@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import ModelPrinter, Feature
+from .models import ModelPrinter, Feature, OrderPrinter
 
 
 
@@ -66,3 +66,7 @@ class PrinterSearchSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     model = serializers.CharField()
     created_at = serializers.DateTimeField()
+class OrderPrinterSerializer(serializers.Serializer):
+    class Meta:
+        model = OrderPrinter
+        fields = '__all__'

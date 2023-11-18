@@ -93,9 +93,36 @@ class Printer(ObjectTracking):
                                        ('building_code','building_code'),
                                        ('floor','floor_code'),
                                    ]))
-    
+    pages_remaining = models.PositiveIntegerField()
+    ink_status = models.BooleanField(default = True)
     status = models.IntegerField(choices = PrinterStatus.choices, default= PrinterStatus.ACTIVE)
     objects = PrinterManager()
     
+    # def get_tongthoigian(self, orderprinter):
+    #     oder_printer.objects.filter(printer = printer_id, is_printed = false)
+    #     return sum(mayorde)
 
-
+class OrderPrinter(models.Model):
+    printer = models.ForeignKey('Printer', on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL,null=True,blank=True)
+    file_upload = models.FileField( upload_to='local/')
+    date_ordered = models.DateTimeField(auto_now_add=True)
+    is_printed = models.BooleanField(default=False)
+    print_date = models.DateTimeField(null=True, blank=True)
+    is_cancelled = models.BooleanField(default=False)
+    # @property
+    # def get_time(self):
+    #     pass khi maf thang user kia xong thi thang nay moi tru
+    file_name = models.CharField( max_length=50)
+    pages =  models.PositiveIntegerField()
+    
+    # @property
+    def get_time(self):
+        return str(self.pages*2)
+    
+    # def get_pdf_page_count(path):
+    #     with open(path, 'rb') as fl:
+    #         reader = PdfFileReader(fl)
+    #     return reader.getNumPages()
+    
+    

@@ -60,11 +60,12 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'core.urls'
+APPS_DIR = os.path.join(BASE_DIR, 'api')
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')]
+        'DIRS': [os.path.join(APPS_DIR, 'templates')]
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -78,7 +79,11 @@ TEMPLATES = [
     },
 ]
 
+ALLOWED_HOSTS = []
 
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
 WSGI_APPLICATION = 'core.wsgi.application'
 EASY_PRINT_MEDIA_DIR = 'media/documents/'  # Change the upload directory here
 
@@ -130,7 +135,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
+
+# STATIC FILE CONFIGURATION
+# ------------------------------------------------------------------------------
+# See: https://docs.djangoproject.com/en/dev/ref/settings/#static-root
+# See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = '/static/'
+
+# See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
+STATICFILES_DIRS = (
+    str(os.path.join(APPS_DIR, 'static')),
+)
 
 # Custom user model
 AUTH_USER_MODEL = "api_auth.User"

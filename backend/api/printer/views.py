@@ -132,4 +132,9 @@ class ModelPrinterDetailView(APIView):
         instance.delete()
         return HttpResponse(status=204)
 
-
+from django.http import JsonResponse
+def get_time(request, pk):
+    orders = get_object_or_404(OrderPrinter, pk=pk)
+    if request.method == 'GET':
+        return JsonResponse({"hehe": orders.get_time()})
+    return Response("hehe")

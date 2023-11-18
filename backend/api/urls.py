@@ -11,6 +11,7 @@ from rest_framework_simplejwt.views import (
 from . import views
 from api.printer.views import *
 from api.auth.views import HelloWorldView
+from django.contrib.auth import views as auth_views
 # from .views import api_home
 router = DefaultRouter()
 router.register('model', ModelPrinterViewSet)
@@ -22,10 +23,10 @@ model_list_view = ModelPrinterViewSet.as_view({
 })
 
 urlpatterns = [
-    path('auth/', obtain_auth_token),
-    path('token/obtain/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    
+    path('login/', auth_views.LoginView.as_view(), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), {'next_page': '/'}, name='logout'),
+    path('orders/<pk>/', get_time),
     #printer
     # path('add_model_printer', model_printer_create),
     path('hello/', HelloWorldView.as_view()),
