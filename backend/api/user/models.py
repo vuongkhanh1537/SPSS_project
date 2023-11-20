@@ -11,7 +11,7 @@ class Major(models.IntegerChoices):
 class Student(Person):
     studentID= models.CharField(max_length=10, null = False)
     major = models.IntegerField(choices= Major.choices,default = Major.CSE)
-    
+    pages_remaining =  models.PositiveIntegerField(default = 100)
     class Meta(Person.Meta):
         db_table = "student_info"
     def save(self, *args, **kwargs):

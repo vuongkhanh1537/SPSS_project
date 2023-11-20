@@ -66,14 +66,8 @@ class Building(models.Model):
     #     return self.inst + self.building
 
 class Floor(models.Model):
-    inst_code = models.CharField(max_length=3)
-    building_code = models.CharField(max_length=2)
-    building = CompositeForeignKey(Building,related_query_name="floors",on_delete = models.CASCADE,
-                                   to_fields=OrderedDict([
-                                       ('inst','inst_code'),
-                                       ('building','building_code'),
-                                   ]))
-    floor= models.PositiveIntegerField()
+    building_code = models.ForeignKey(Building, on_delete=models.CASCADE)
+    floor_code = models.PositiveIntegerField()
 class PrinterStatus(models.IntegerChoices):
     ACTIVE = 1,'Active'
     OFFLINE = 3, 'Offline'
@@ -83,16 +77,7 @@ class PrinterStatus(models.IntegerChoices):
     
 class Printer(ObjectTracking):
     model = models.ForeignKey("ModelPrinter",  on_delete=models.CASCADE)       
-    inst_code = models.CharField(max_length=3)
-    building_code =  models.CharField(max_length=2)
-    floor_code = models.PositiveIntegerField()
-    
-    floor = CompositeForeignKey(Floor,related_query_name="printers",on_delete = models.CASCADE,
-                                   to_fields=OrderedDict([
-                                       ('inst_code','inst_code'),
-                                       ('building_code','building_code'),
-                                       ('floor','floor_code'),
-                                   ]))
+    floor = models.ForeignKey(Floor, on_delete=models.CASCADE)
     pages_remaining = models.PositiveIntegerField()
     ink_status = models.BooleanField(default = True)
     status = models.IntegerField(choices = PrinterStatus.choices, default= PrinterStatus.ACTIVE)

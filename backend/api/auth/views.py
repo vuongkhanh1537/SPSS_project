@@ -8,6 +8,7 @@ from .serializers import CustomUserSerializer
 from .models import  User, Person 
 from django.shortcuts import get_object_or_404
 
+
 class CustomUserCreate(generics.GenericAPIView):
     permission_classes = (permissions.AllowAny,)
     authentication_classes = ()

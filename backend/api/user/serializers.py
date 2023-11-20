@@ -12,8 +12,8 @@ class PersonSerializer(UserSerializer):
 class StudentSerializer(PersonSerializer):
     class Meta:
         model = Student
-        fields = ['user_id','studentID', 'first_name', 'last_name', 'phone','major']
-        read_only_fields = ['studentID', 'first_name','last_name','major']
+        fields = ['user_id','studentID', 'first_name', 'last_name', 'phone','major', 'pages_remaning']
+        read_only_fields = ['studentID', 'first_name','last_name','major', 'pages_remaining']
 class OfficerSerializer(PersonSerializer):
     class Meta:
         model = Officer
