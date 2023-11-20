@@ -31,10 +31,14 @@ class ModelPrinter(ObjectTracking):
     def features(self):
         return self.feature_set.all()
 
-
+class FeatureChoices(models.TextChoices):
+    SCAN = "Scan"
+    PRINT = "Print"
+    Photocopy = "Photocopy"
+    
 class Feature(models.Model):
     model = models.ForeignKey('ModelPrinter', on_delete=models.CASCADE)
-    feature = models.CharField(max_length=10,null=True, blank=True)
+    feature = models.CharField(max_length=10, choices= FeatureChoices.choices,null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -50,24 +54,42 @@ class PrinterManager(models.Manager):
 
     def inactive(self):
         return self.all_objects().filter(status=2)
-class Institution(models.Model):
-    code = models.CharField(max_length=3, primary_key= True) #cs1 cs2
-    name= models.CharField(max_length = 7)
+# class Institution(models.Model):
+#     code = models.CharField(max_length=3, primary_key= True) #cs1 cs2
+#     name= models.CharField(max_length = 7)
+    
+#     def __str__(self):
+#         return self.code
+
+class Institution(models.IntegerChoices):
+    CS1 = 1 , 'Cơ sở 1'
+    CS2 = 2, 'Cơ sở 2'
+
+class Floor(models.Model):
+    building_code = models.ForeignKey("Building", on_delete=models.CASCADE)
+    floor_code = models.PositiveIntegerField()
     
     def __str__(self):
-        return self.code
-
+        return f"{self.building_code} - Tầng {self.floor_code}"
+    
 class Building(models.Model):
-    inst = models.ForeignKey("Institution", on_delete=models.CASCADE)
+    inst = models.IntegerField(choices=Institution.choices, default = Institution.CS1, null = False)
     building = models.CharField(max_length=2)
     # building_of_institution = CompositeKey(columns =['inst','building'])
     
-    # def __str__(self):
-    #     return self.inst + self.building
-
-class Floor(models.Model):
-    building_code = models.ForeignKey(Building, on_delete=models.CASCADE)
-    floor_code = models.PositiveIntegerField()
+    def __str__(self):
+        return f"Cơ sở {self.inst} - Tòa {self.building}"
+    def save(self, *args, **kwargs):
+        
+        super().save(*args, **kwargs)
+        if self.inst == 2:
+            for floor in range(8):
+                bldg = Floor(floor_code=floor, building_code=self)
+                bldg.save()
+        else:
+            for floor in range(5):
+                bldg = Floor(floor_code=floor, building_code=self)
+                bldg.save()
 class PrinterStatus(models.IntegerChoices):
     ACTIVE = 1,'Active'
     OFFLINE = 3, 'Offline'

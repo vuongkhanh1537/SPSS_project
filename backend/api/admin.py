@@ -9,7 +9,6 @@ admin.site.register(Student)
 admin.site.register(Officer)
 
 
-admin.site.register(Institution)
 admin.site.register(Building)
 admin.site.register(Floor)
 admin.site.register(Printer)
