@@ -33,6 +33,6 @@ export const studentRoutes = [
         id: 5,
         title: 'Lịch sử hoạt động',
         icon: <BsActivity />,
-        url: '/history'
+        url: '/printing-history'
     },
 ]
