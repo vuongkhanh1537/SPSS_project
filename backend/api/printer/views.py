@@ -15,7 +15,7 @@ from rest_framework import generics
 from rest_framework import mixins
 from rest_framework.decorators import action
 from .models import *
-from .serializers import ModelPrinterSerializer, FeatureSerializer
+from .serializers import ModelPrinterSerializer, FeatureSerializer, PrinterSerializer
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import viewsets
@@ -131,4 +131,54 @@ class ModelPrinterDetailView(APIView):
         instance = self.get_object(id)
         instance.delete()
         return HttpResponse(status=204)
+class PrinterListAPIView(APIView):
+    # authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        printers = Printer.objects.all()
+        serializer = PrinterSerializer(printers, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = PrinterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PrinterDetailAPIView(APIView):
+    # authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, id):
+        try:
+            return Printer.objects.get(id=id)
+        except Printer.DoesNotExist:
+            return None
+
+    def get(self, request, id):
+        printer = self.get_object(id)
+        if printer:
+            serializer = PrinterSerializer(printer)
+            return Response(serializer.data)
+        return Response({"detail": "Printer not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, id):
+        printer = self.get_object(id)
+        if printer:
+            serializer = PrinterSerializer(printer, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": "Printer not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, id):
+        printer = self.get_object(id)
+        if printer:
+            # Change status to Offline instead of deleting
+            printer.status = PrinterStatus.OFFLINE
+            printer.save()
+            return Response({"detail": "Printer set to Offline"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"detail": "Printer not found"}, status=status.HTTP_404_NOT_FOUND)

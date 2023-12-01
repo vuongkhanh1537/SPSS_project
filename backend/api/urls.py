@@ -19,7 +19,7 @@ model_list_view = ModelPrinterViewSet.as_view({
     "get": "list",
     "post": "create"
 })
-
+# router.register(r'printers', PrinterViewSet, basename='printer')
 urlpatterns = [
     
     # path('login/', auth_views.LoginView.as_view(), name='login'),
@@ -30,6 +30,6 @@ urlpatterns = [
     path('hello/', HelloWorldView.as_view(), name='hello_world'),
     path('blacklist/', LogoutAndBlacklistRefreshTokenForUserView.as_view(), name='blacklist'),
     #printer
-    # path('add_model_printer', model_printer_create),
+    path('printers/',include('api.printer.urls', namespace = 'printers')),
     path('',include(router.urls))
 ]

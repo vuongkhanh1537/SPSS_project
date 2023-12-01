@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import ModelPrinter, Feature, OrderPrinter
+from .models import ModelPrinter, Feature, OrderPrinter, Printer
 
 
 
@@ -60,7 +60,9 @@ class ModelPrinterSerializer(serializers.ModelSerializer):
         return instance
 
 class PrinterSerializer(serializers.ModelSerializer):
-    pass
+    class Meta:
+        model = Printer
+        fields = '__all__'
 
 class PrinterSearchSerializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -70,3 +72,4 @@ class OrderPrinterSerializer(serializers.Serializer):
     class Meta:
         model = OrderPrinter
         fields = '__all__'
+        read_only_fields = ('ink_status', 'model')

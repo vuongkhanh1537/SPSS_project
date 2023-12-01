@@ -3,7 +3,7 @@ from api.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
 from compositefk.fields import CompositeForeignKey
-from viewflow.fields import CompositeKey
+# from viewflow.fields import CompositeKey
 from collections import OrderedDict
 
 class ObjectTracking(models.Model):
