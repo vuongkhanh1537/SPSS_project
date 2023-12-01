@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class PrinterConfig(AppConfig):
+class BkpayConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'printer'
+    name = 'bkpay'
