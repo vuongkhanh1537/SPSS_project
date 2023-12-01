@@ -1,15 +1,17 @@
+import uuid
 from django.db import models
+from django.conf import settings
 from api.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
 from compositefk.fields import CompositeForeignKey
 # from viewflow.fields import CompositeKey
 from collections import OrderedDict
-
+from mptt.models import MPTTModel, TreeForeignKey
 class ObjectTracking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING)
     class Meta:
         abstract = True
         ordering = ('-created_at',)
@@ -54,12 +56,6 @@ class PrinterManager(models.Manager):
 
     def inactive(self):
         return self.all_objects().filter(status=2)
-# class Institution(models.Model):
-#     code = models.CharField(max_length=3, primary_key= True) #cs1 cs2
-#     name= models.CharField(max_length = 7)
-    
-#     def __str__(self):
-#         return self.code
 
 class Institution(models.IntegerChoices):
     CS1 = 1 , 'Cơ sở 1'
@@ -68,7 +64,6 @@ class Institution(models.IntegerChoices):
 class Floor(models.Model):
     building_code = models.ForeignKey("Building", on_delete=models.CASCADE)
     floor_code = models.PositiveIntegerField()
-    
     def __str__(self):
         return f"{self.building_code} - Tầng {self.floor_code}"
     
@@ -97,17 +92,36 @@ class PrinterStatus(models.IntegerChoices):
     BUSY = 5, 'Busy'
     MAINTAINANCE=2, 'Maintenance'
     
-class Printer(ObjectTracking):
+class Printer(models.Model):
+    # uuid = models.UUIDField(db_index=True, default=uuid.uuid4, editable=False)
     model = models.ForeignKey("ModelPrinter",  on_delete=models.CASCADE)       
-    floor = models.ForeignKey(Floor, on_delete=models.CASCADE)
+    floor = models.ForeignKey(
+        Floor, related_name="printer_floor", on_delete=models.CASCADE
+    )
     pages_remaining = models.PositiveIntegerField()
     ink_status = models.BooleanField(default = True)
     status = models.IntegerField(choices = PrinterStatus.choices, default= PrinterStatus.ACTIVE)
     objects = PrinterManager()
     
+    # Add a field to store the floor description
+    floor_description = models.CharField(max_length=255, blank=True, null=True)
     # def get_tongthoigian(self, orderprinter):
     #     oder_printer.objects.filter(printer = printer_id, is_printed = false)
     #     return sum(mayorde)
+    def save(self, *args, **kwargs):
+        # Get the floor description from the related Floor object
+        if self.floor:
+            floor_description = f"{self.floor.building_code} - Tầng {self.floor.floor_code}"
+            self.floor_description = floor_description
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.model} - {self.floor_description}"
+class PrinterViews(ObjectTracking):
+    ip = models.CharField(max_length=250)
+    printer = models.ForeignKey(
+        Printer, related_name="printer_views", on_delete=models.CASCADE
+    )
 
 class OrderPrinter(models.Model):
     printer = models.ForeignKey('Printer', on_delete=models.SET_NULL, null=True, blank=True)
