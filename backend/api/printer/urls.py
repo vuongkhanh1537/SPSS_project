@@ -16,4 +16,7 @@ urlpatterns = [
     path("create/printer/", views.CreatePrinterAPIView.as_view()),
     path("printer/<pk>/delete/", views.DestroyPrinterAPIView.as_view()),
     path("printer/<pk>/", views.PrinterDetailView.as_view()),
+    path('file-upload/', views.FileUploadView.as_view()),
+    path('printer-order/', views.PrinterOrderView.as_view()),
+
 ]
