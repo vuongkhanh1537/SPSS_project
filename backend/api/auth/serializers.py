@@ -1,6 +1,17 @@
 from rest_framework import serializers
 from .models import User
 from django.core.exceptions import ObjectDoesNotExist
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        # Add your extra responses here
+        data['is_staff'] = self.user.is_staff
+        # data['groups'] = self.user.groups.values_list('name', flat=True)
+        return data
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

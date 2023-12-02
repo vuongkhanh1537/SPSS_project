@@ -25,6 +25,7 @@ class ModelPrinterManager(models.Manager):
 
 class ModelPrinter(models.Model):
     model = models.CharField(max_length=12,null=False, blank=False)
+    page_per_min = models.PositiveIntegerField(default = 18)
     created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.DO_NOTHING,related_name='model_created_by')
     modified_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.DO_NOTHING, related_name='model_modified_by')
     objects = ModelPrinterManager()
@@ -108,6 +109,7 @@ class Printer(ObjectTracking):
     
     # Add a field to store the floor description
     floor_description = models.CharField(max_length=255, blank=True, null=True)
+    model_name = models.CharField(max_length=255, blank=True, null=True)
     # def get_tongthoigian(self, orderprinter):
     #     oder_printer.objects.filter(printer = printer_id, is_printed = false)
     #     return sum(mayorde)
@@ -116,6 +118,8 @@ class Printer(ObjectTracking):
         if self.floor:
             floor_description = f"{self.floor.building_code} - Tầng {self.floor.floor_code}"
             self.floor_description = floor_description
+        if self.model:
+            self.model_name = self.model.model
         super().save(*args, **kwargs)
     order_queue = deque()
 

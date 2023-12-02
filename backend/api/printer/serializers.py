@@ -23,6 +23,7 @@ class ModelPrinterSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "model",
+            "page_per_min"
             "created_by",
             "features",
         ]

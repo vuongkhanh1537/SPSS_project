@@ -144,9 +144,9 @@ class ListPrinterView(viewsets.ModelViewSet):
         filters.SearchFilter,
         filters.OrderingFilter,
     )
-    search_fields = ("floor",)
-    ordering_fields = ("created_at",)
-    filter_fields = ("status",)
+    search_fields = ("floor","model_name")
+    ordering_fields = ("created_at",'page_remaining',)
+    filter_fields = ("status",'model_name')
     queryset = Printer.objects.all()
 
     # def list(self, request, *args, **kwargs):
