@@ -1,3 +1,4 @@
+import requests
 from django.shortcuts import render, reverse, redirect, get_object_or_404
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -13,18 +14,42 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import generics
 from rest_framework import mixins
+from rest_framework import filters
 from rest_framework.decorators import action
+from .permissions import IsOwnerAuth, ModelViewSetsPermission
 from .models import *
-from .serializers import ModelPrinterSerializer, FeatureSerializer, PrinterSerializer
+from .serializers import *
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import viewsets
 from rest_framework.decorators import action
+
+from rest_framework.generics import (
+    ListAPIView,
+    RetrieveAPIView,
+    CreateAPIView,
+    DestroyAPIView,
+)
+
 from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import FilterSet
-from django_filters import rest_framework as filters
+# from django_filters.filters import OrderingFilter as o
 
+from django.core.cache import cache
+from django.conf import settings
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie
+from django.utils.translation import gettext_lazy as _
 
+from django_elasticsearch_dsl_drf.constants import LOOKUP_FILTER_GEO_DISTANCE
+from django_elasticsearch_dsl_drf.filter_backends import (
+    FilteringFilterBackend,
+    OrderingFilterBackend,
+    SearchFilterBackend,
+    DefaultOrderingFilterBackend,
+)
 
 class ModelPrinterViewSet(viewsets.ModelViewSet):
     serializer_class = ModelPrinterSerializer
@@ -106,32 +131,26 @@ class ModelPrinterAPIView(APIView):
             return Response(serializer.data, status=201)
         return Response(serializer.erros, status=400)
 
-class ModelPrinterDetailView(APIView):
-    def get_object(self, id):
-        try:
-            return ModelPrinter.objects.get(id=id)
-        except ModelPrinter.DoesNotExist as e:
-            return Response( {"error": "Given model object not found."}, status=404)
+class ListPrinterView(viewsets.ModelViewSet):
+    # permission_classes = (ModelViewSetsPermission,)
+    serializer_class = CreatePrinterSerializer
+    filter_backends = (
+        DjangoFilterBackend,
+        filters.OrderingFilter,
+    )
+    search_fields = ("floor",)
+    ordering_fields = ("created_at",)
+    filter_fields = ("status",)
+    queryset = Printer.objects.all()
 
-    def get(self, request, id=None):
-        instance = self.get_object(id)
-        serailizer = ModelPrinterSerializer(instance)
-        return Response(serailizer.data)
+    # def list(self, request, *args, **kwargs):
+    #     queryset = self.filter_queryset(self.get_queryset())
+    #     print("queryset -> ", queryset)
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(serializer)
 
-    def put(self, request, id=None):
-        data = request.data
-        instance = self.get_object(id)
-        serializer = ModelPrinterSerializer(instance, data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=200)
-        return Response(serializer.erros, status=400)
-
-    def delete(self, request, id=None):
-        instance = self.get_object(id)
-        instance.delete()
-        return HttpResponse(status=204)
-class PrinterListAPIView(APIView):
+    def update(self, request, *args, **kwargs):
+        return super(ListPrinterView, self).update(request, *args, **kwargs)
     # authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -146,39 +165,117 @@ class PrinterListAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class FloorListAPIView(ListAPIView):
+    # permission_classes = [permissions.IsAuthenticated]
+    serializer_class = FloorSerializer
+    filter_backends = (
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    )
+    search_fields = ("floor_code",)
+    filter_fields = ("building_code",)
+    # queryset = Floor.objects.all()
 
-class PrinterDetailAPIView(APIView):
-    # authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        queryset = Floor.objects.all()
+        return queryset
 
-    def get_object(self, id):
-        try:
-            return Printer.objects.get(id=id)
-        except Printer.DoesNotExist:
-            return None
 
-    def get(self, request, id):
-        printer = self.get_object(id)
-        if printer:
-            serializer = PrinterSerializer(printer)
-            return Response(serializer.data)
-        return Response({"detail": "Printer not found"}, status=status.HTTP_404_NOT_FOUND)
+class FloorAPIView(RetrieveAPIView):
+    # permission_classes = [permissions.IsAuthenticated]
+    serializer_class = FloorSerializer
+    queryset = Floor.objects.all()
 
-    def put(self, request, id):
-        printer = self.get_object(id)
-        if printer:
-            serializer = PrinterSerializer(printer, data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response({"detail": "Printer not found"}, status=status.HTTP_404_NOT_FOUND)
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
 
-    def delete(self, request, id):
-        printer = self.get_object(id)
-        if printer:
-            # Change status to Offline instead of deleting
-            printer.status = PrinterStatus.OFFLINE
+        return Response(serializer.data)
+
+
+class ListPrinterAPIView(ListAPIView):
+    serializer_class = PrinterSerializer
+    filter_backends = (
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    )
+    search_fields = ("floor_description",)
+    ordering_fields = ("created_at",) # change related at to time remaining
+    filter_fields = ("status",)
+    queryset = Printer.objects.all()
+
+    # Cache requested url for each user for 2 hours
+    @method_decorator(cache_page(60 * 60 * 2))
+    @method_decorator(vary_on_cookie)
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+class CreatePrinterAPIView(CreateAPIView):
+    # permission_classes = [permissions.IsAuthenticated]
+    serializer_class = CreatePrinterSerializer
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(create_by=user)
+        # push_notifications(user, request.data["title"], "you have add a new printer")
+        # if user.profile.phone_number:
+        #     send_message(user.profile.phone_number, "Congratulations, you Created New Printer")
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class DestroyPrinterAPIView(DestroyAPIView):
+    permission_classes = [IsOwnerAuth]
+    serializer_class = PrinterDetailSerializer
+    queryset = Printer.objects.all()
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.is_deleted = True
+        instance.save()
+        return Response({"detail": "Printer deleted"})
+
+
+class PrinterViewsAPIView(ListAPIView):
+    # permission_classes = [IsOwnerAuth]
+    serializer_class = PrinterViewsSerializer
+    queryset = PrinterViews.objects.all()
+
+
+class PrinterDetailView(APIView):
+    def get(self, request, pk):
+        printer = Printer.objects.get(id=pk)
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(",")[0]
+        else:
+            ip = request.META.get("REMOTE_ADDR")
+
+        if not PrinterViews.objects.filter(printer=printer, ip=ip).exists():
+            PrinterViews.objects.create(printer=printer, ip=ip)
+
+
             printer.save()
-            return Response({"detail": "Printer set to Offline"}, status=status.HTTP_204_NO_CONTENT)
-        return Response({"detail": "Printer not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = PrinterDetailSerializer(printer, context={"request": request})
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        printer = get_object_or_404(Printer, pk=pk)
+
+        serializer = PrinterDetailSerializer(
+            printer, data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)

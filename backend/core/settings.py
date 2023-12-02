@@ -46,6 +46,14 @@ INSTALLED_APPS = [
     'api.printer',
     'corsheaders',
     'rest_framework',
+    'mptt',
+    'notifications',
+    'django_filters',
+    # Django Elasticsearch integration
+    'django_elasticsearch_dsl',
+
+    # Django REST framework Elasticsearch integration (this package)
+    'django_elasticsearch_dsl_drf'
 ]
 
 MIDDLEWARE = [
@@ -172,12 +180,20 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3001",
     "http://127.0.0.1:3001",
 ]
+ELASTICSEARCH_DSL={
+    'default': {
+        'hosts': 'localhost:9200',
+        'http_auth': ('username', 'password')
+    }
+}
+ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = 'django_elasticsearch_dsl.signals.RealTimeSignalProcessor'
 # Rest Framework
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
         
     ),
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.BasicAuthentication',
