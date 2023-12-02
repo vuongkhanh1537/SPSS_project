@@ -144,9 +144,9 @@ class ListPrinterView(viewsets.ModelViewSet):
         filters.SearchFilter,
         filters.OrderingFilter,
     )
-    search_fields = ("floor",)
-    ordering_fields = ("created_at",)
-    filter_fields = ("status",)
+    search_fields = ("floor","model_name")
+    ordering_fields = ("created_at",'page_remaining',)
+    filter_fields = ("status",'model_name')
     queryset = Printer.objects.all()
 
     # def list(self, request, *args, **kwargs):
@@ -231,7 +231,6 @@ class CreatePrinterAPIView(CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         user = request.user
-        printer = self.get_object(id=pk)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(created_by=user)
