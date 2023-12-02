@@ -8,10 +8,12 @@ from compositefk.fields import CompositeForeignKey
 # from viewflow.fields import CompositeKey
 from collections import OrderedDict
 from mptt.models import MPTTModel, TreeForeignKey
+
 class ObjectTracking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING,related_name='created_by')
+    modified_by = models.ForeignKey(settings.AUTH_USER_MODEL,null = True, on_delete=models.DO_NOTHING, related_name='modified_by')
     class Meta:
         abstract = True
         ordering = ('-created_at',)
@@ -20,10 +22,10 @@ class ModelPrinterManager(models.Manager):
     def all_objects(self):
         return super().get_queryset()
 
-class ModelPrinter(ObjectTracking):
+class ModelPrinter(models.Model):
     model = models.CharField(max_length=12,null=False, blank=False)
-    created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.DO_NOTHING)
-    
+    created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.DO_NOTHING,related_name='model_created_by')
+    modified_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.DO_NOTHING, related_name='model_modified_by')
     objects = ModelPrinterManager()
 
     def __str__(self):
@@ -92,7 +94,7 @@ class PrinterStatus(models.IntegerChoices):
     BUSY = 5, 'Busy'
     MAINTAINANCE=2, 'Maintenance'
     
-class Printer(models.Model):
+class Printer(ObjectTracking):
     # uuid = models.UUIDField(db_index=True, default=uuid.uuid4, editable=False)
     model = models.ForeignKey("ModelPrinter",  on_delete=models.CASCADE)       
     floor = models.ForeignKey(
@@ -117,12 +119,6 @@ class Printer(models.Model):
 
     def __str__(self):
         return f"{self.model} - {self.floor_description}"
-class PrinterViews(ObjectTracking):
-    ip = models.CharField(max_length=250)
-    printer = models.ForeignKey(
-        Printer, related_name="printer_views", on_delete=models.CASCADE
-    )
-
 class OrderPrinter(models.Model):
     printer = models.ForeignKey('Printer', on_delete=models.SET_NULL, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL,null=True,blank=True)
