@@ -16,7 +16,7 @@ const printers = [
     status: 'ready',
     queue: []
   },
-  {
+  {     
     id: '2',
     name: 'HP LaserJet',
     address: 'CS2, H1, 404',

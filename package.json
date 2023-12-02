@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "firebase": "^10.7.0",
+    "reactstrap": "^9.2.1"
+  }
+}

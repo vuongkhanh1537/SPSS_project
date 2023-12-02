@@ -44,7 +44,6 @@ class Feature(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-
 class PrinterManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(status=1)
@@ -90,6 +89,7 @@ class Building(models.Model):
             for floor in range(5):
                 bldg = Floor(floor_code=floor, building_code=self)
                 bldg.save()
+                
 class PrinterStatus(models.IntegerChoices):
     ACTIVE = 1,'Active'
     OFFLINE = 3, 'Offline'

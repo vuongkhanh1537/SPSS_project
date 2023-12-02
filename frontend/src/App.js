@@ -34,7 +34,7 @@ class App extends Component {
     };
 	render(){
 		return (
-			<div className='App'>
+		<div className='App'>
 			<BrowserRouter>
 					<Routes>
 						<Route 
@@ -48,13 +48,13 @@ class App extends Component {
 								</div>
 							</ProtectedRoute>
 						} 
-					/>
-						<Route path="login" element={<Login />} />
-					<Route path="hello" element={<Hello/>}/>
+						/>
+						{/* <Route path="login" element={<Login />} /> */}
+						<Route path="hello" element={<Hello/>}/>
 						<Route path="login_SSO" element={<LoginWithHCMUT_SSO />} />
 					</Routes>
-				</BrowserRouter>
-				<ToastContainer position='top-right' />
+			</BrowserRouter>
+			<ToastContainer position='top-right' />
 		</div>
 	);
 	}

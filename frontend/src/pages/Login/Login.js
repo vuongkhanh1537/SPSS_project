@@ -1,4 +1,4 @@
-import React, { useState, Component }, { useEffect, useState } from 'react'
+import React, { useState, Component, useEffect } from 'react'
 import PrinterIntro from '../../assests/images/printer-intro.png'
 import LogoHCMUT from '../../assests/images/LogoHCMUT.png'
 import './login.scss'
@@ -7,8 +7,6 @@ import LoginWithHCMUT_SSO from '../LoginWithHCMUT_SSO/LoginWithHCMUT_SSO'
 import { useDispatch, useSelector } from 'react-redux'
 import { login } from '../../features/actions/auth-actions'
 import { toast } from 'react-toastify'
-import { useDispatch } from 'react-redux'
-import { login } from '../../features/actions/auth-actions'
 import axiosInstance from "../axiosApi";
 
 class Login extends Component {
