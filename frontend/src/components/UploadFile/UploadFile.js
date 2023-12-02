@@ -86,7 +86,7 @@ const UploadFile = ({ selectedfile, setSelectedFile }) => {
                                 <form>
                                     <div className="kb-file-upload">
                                         <div className="file-upload-box">
-                                            <input type="file" id="fileupload" className="file-upload-input" onChange={InputChange} />
+                                            <input type="file" accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf" id="fileupload" className="file-upload-input" onChange={InputChange} />
                                             <p> </p>
                                             <span><FaCloudUploadAlt className="cloud-icon" /></span>
                                             <span>Drag and drop or <span className="file-link">Choose your files</span></span>
