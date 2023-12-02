@@ -1,8 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react';
+import { Button, Form, Col, Row } from 'react-bootstrap';
 
 function AddPrinter() {
+
   return (
-    <div>AddPrinter</div>
+    <h2>Thêm máy in</h2>
   )
 }
 
