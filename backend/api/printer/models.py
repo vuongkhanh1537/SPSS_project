@@ -8,7 +8,8 @@ from compositefk.fields import CompositeForeignKey
 # from viewflow.fields import CompositeKey
 from collections import OrderedDict
 from mptt.models import MPTTModel, TreeForeignKey
-
+from django.utils import timezone
+from collections import deque
 class ObjectTracking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -120,9 +121,33 @@ class Printer(ObjectTracking):
         if self.model:
             self.model_name = self.model.model
         super().save(*args, **kwargs)
+    order_queue = deque()
 
+    def add_to_queue(self, order):
+        """
+        Add an order to the printer's queue.
+        """
+        self.order_queue.append(order)
+
+    def process_next_order(self):
+        """
+        Process the next order in the queue.
+        """
+        if self.order_queue:
+            next_order = self.order_queue.popleft()
+            next_order.print_date = timezone.now()
+            next_order.is_printed = True
+            next_order.save()
+            self.pages_remaining -= next_order.pages
+            self.ink_status = False  # Update ink status or any other relevant attributes
+            self.save()
+            return next_order
+        else:
+            return None
     def __str__(self):
         return f"{self.model} - {self.floor_description}"
+
+
 class OrderPrinter(models.Model):
     printer = models.ForeignKey('Printer', on_delete=models.SET_NULL, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL,null=True,blank=True)
@@ -138,9 +163,12 @@ class OrderPrinter(models.Model):
     pages =  models.PositiveIntegerField()
     
     # @property
+
     def get_time(self):
         return str(self.pages*2)
-    
+    def cal_time_required(self):
+        return self.pages / self.printer.model.page_per_min
+
     # def get_pdf_page_count(path):
     #     with open(path, 'rb') as fl:
     #         reader = PdfFileReader(fl)
