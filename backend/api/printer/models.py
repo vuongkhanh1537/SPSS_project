@@ -118,7 +118,7 @@ class Printer(ObjectTracking):
             floor_description = f"{self.floor.building_code} - Tầng {self.floor.floor_code}"
             self.floor_description = floor_description
         if self.model:
-            self.model_name = self.model.name
+            self.model_name = self.model.model
         super().save(*args, **kwargs)
 
     def __str__(self):
