@@ -17,4 +17,7 @@ urlpatterns = [
     path("<pk>/update-page/", views.UpdatePagesRemainingAPIView.as_view()),
     path("<pk>/delete/", views.DestroyPrinterAPIView.as_view()),
     path("<pk>/", views.PrinterDetailView.as_view()),
+    path('file-upload/', views.FileUploadView.as_view()),
+    path('printer-order/', views.PrinterOrderView.as_view()),
+
 ]

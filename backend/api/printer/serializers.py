@@ -122,3 +122,15 @@ class OrderPrinterSerializer(serializers.Serializer):
         model = OrderPrinter
         fields = '__all__'
         read_only_fields = ('ink_status', 'model')
+
+class PrinterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Printer
+        fields = '__all__'
+class OrderPrinterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderPrinter
+        fields = '__all__'
+class FileuploadSerializer(serializers.Serializer):
+    file_upload=serializers.FileField()
+    pagenumber=serializers.IntegerField()
