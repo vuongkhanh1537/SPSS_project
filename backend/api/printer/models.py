@@ -145,6 +145,7 @@ class Printer(ObjectTracking):
             return None
     def __str__(self):
         return f"{self.model} - {self.floor_description}"
+    
 class PrinterViews(ObjectTracking):
     ip = models.CharField(max_length=250)
     printer = models.ForeignKey(
@@ -159,6 +160,7 @@ class OrderPrinter(models.Model):
     is_printed = models.BooleanField(default=False)
     print_date = models.DateTimeField(null=True, blank=True)
     is_cancelled = models.BooleanField(default=False)
+    
     # @property
     # def get_time(self):
     #     pass khi maf thang user kia xong thi thang nay moi tru
