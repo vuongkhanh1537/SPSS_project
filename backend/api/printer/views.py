@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import CreateView
 from django.db.models import Q
 
+
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -16,7 +17,7 @@ from rest_framework import generics
 from rest_framework import mixins
 from rest_framework import filters
 from rest_framework import permissions
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from .permissions import IsOwnerAuth, ModelViewSetsPermission
 from .models import *
 from .serializers import *
@@ -199,7 +200,26 @@ class FloorAPIView(RetrieveAPIView):
 
         return Response(serializer.data)
 
+class UpdatePagesRemainingAPIView(APIView):
+    def get_object(self, pk):
+        try:
+            return Printer.objects.get(pk=pk)
+        except Printer.DoesNotExist:
+            return None
 
+    def patch(self, request, pk):
+        printer = self.get_object(pk)
+        if printer:
+            # Update pages_remaining by adding 200 to the current value
+            printer.pages_remaining += 200
+            printer.save()
+
+            # Serialize the updated printer and return the response
+            serializer = PrinterSerializer(printer)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response({"detail": "Printer not found"}, status=status.HTTP_404_NOT_FOUND)
+    
 class ListPrinterAPIView(ListAPIView):
     serializer_class = PrinterSerializer
     filter_backends = (

@@ -10,10 +10,11 @@ app_name = "printers"
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("category/", views.FloorListAPIView.as_view()),
-    path("category/<pk>/", views.FloorAPIView.as_view()),
+    path("floor/", views.FloorListAPIView.as_view()),
+    path("floor/<pk>/", views.FloorAPIView.as_view()),
     path("list/", views.ListPrinterAPIView.as_view()),
-    path("create/printer/", views.CreatePrinterAPIView.as_view()),
-    path("printer/<pk>/delete/", views.DestroyPrinterAPIView.as_view()),
-    path("printer/<pk>/", views.PrinterDetailView.as_view()),
+    path("create/", views.CreatePrinterAPIView.as_view()),
+    path("<pk>/update-page/", views.UpdatePagesRemainingAPIView.as_view()),
+    path("<pk>/delete/", views.DestroyPrinterAPIView.as_view()),
+    path("<pk>/", views.PrinterDetailView.as_view()),
 ]
