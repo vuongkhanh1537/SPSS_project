@@ -14,7 +14,7 @@ class FeatureSerializer(serializers.ModelSerializer):
             'feature'
         ]
         read_only_fields = ('model',)
-
+        
 class ModelPrinterSerializer(serializers.ModelSerializer):
     features = FeatureSerializer(many=True)
     
@@ -23,7 +23,7 @@ class ModelPrinterSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "model",
-            "page_per_min"
+            "page_per_min",
             "created_by",
             "features",
         ]
