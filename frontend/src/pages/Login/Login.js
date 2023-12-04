@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 import React, { useState, Component, useEffect } from 'react'
-=======
 import React, { useEffect, useState } from 'react'
->>>>>>> 381c94d686a77f6a7ead5191c8f954178c863ff2
 import PrinterIntro from '../../assests/images/printer-intro.png'
 import LogoHCMUT from '../../assests/images/LogoHCMUT.png'
 import './login.scss'
