@@ -7,12 +7,7 @@ from django.views.generic import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import CreateView
 from django.db.models import Q
-<<<<<<< HEAD
-
-
-=======
 import base64
->>>>>>> 381c94d686a77f6a7ead5191c8f954178c863ff2
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from rest_framework.response import Response
