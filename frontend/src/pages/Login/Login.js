@@ -11,10 +11,8 @@ import LoginWithHCMUT_SSO from '../LoginWithHCMUT_SSO/LoginWithHCMUT_SSO'
 import { useDispatch, useSelector } from 'react-redux'
 import { login } from '../../features/actions/auth-actions'
 import { toast } from 'react-toastify'
-<<<<<<< HEAD
 import axiosInstance from "../axiosApi";
-=======
->>>>>>> 381c94d686a77f6a7ead5191c8f954178c863ff2
+
 
 function Login() {
     const [formData, setFormData] = useState({ username: '', password: '' });
