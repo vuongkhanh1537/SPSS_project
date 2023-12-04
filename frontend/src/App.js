@@ -15,7 +15,7 @@ class App extends Component {
 
     constructor() {
         super();
-        this.handleLogout = this.handleLogout.bind(this);
+        //this.handleLogout = this.handleLogout.bind(this);
     }
 
     async handleLogout() {
@@ -49,7 +49,7 @@ class App extends Component {
 							</ProtectedRoute>
 						} 
 						/>
-						{/* <Route path="login" element={<Login />} /> */}
+						<Route path="login" element={<Login />} />
 						<Route path="hello" element={<Hello/>}/>
 						<Route path="login_SSO" element={<LoginWithHCMUT_SSO />} />
 					</Routes>

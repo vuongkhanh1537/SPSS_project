@@ -4,8 +4,7 @@ import PrintDocument from '../PrintDocument/PrintDocument'
 import Printers from '../Printers/Printers'
 import PrintStatus from '../PrintStatus/PrintStatus'
 import PrinterMangement from '../PrinterManagement/PrinterMangement'
-import AddPrinter from '../AddPrinter/AddPrinter'
-import EditPrinter from '../EditPrinter/EditPrinter'
+import ManagePrinter from '../ManagePrinter/ManagePrinter'
 import PrintingHistory from '../PrintingHistory/PrintingHistory'
 import Payment from '../Payment/Payment'
 
@@ -18,8 +17,7 @@ function AuthorizeRoutes() {
       <Route path='payment' element={<Payment />} ></Route>
       <Route path='printing-history' element={<PrintingHistory />} ></Route>
       <Route path='printer-management' element={<PrinterMangement />} ></Route>
-      <Route path='add-printer' element={<AddPrinter />} ></Route>
-      <Route path='edit-printer' element={<EditPrinter />} ></Route>
+      <Route path='manage-printer' element={<ManagePrinter />} ></Route>
     </Routes>
   )
 }
