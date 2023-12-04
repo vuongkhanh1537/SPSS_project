@@ -4,10 +4,13 @@ from rest_framework_simplejwt.views import TokenObtainPairView, generics
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import mixins
-from .serializers import CustomUserSerializer
+from .serializers import CustomUserSerializer, MyTokenObtainPairSerializer
 from .models import  User, Person 
 from django.shortcuts import get_object_or_404
+from rest_framework_simplejwt.views import TokenObtainPairView
 
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
 
 class CustomUserCreate(generics.GenericAPIView):
     permission_classes = (permissions.AllowAny,)

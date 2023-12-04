@@ -7,7 +7,7 @@ from django.views.generic import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import CreateView
 from django.db.models import Q
-
+import base64
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -15,6 +15,7 @@ from rest_framework import status
 from rest_framework import generics
 from rest_framework import mixins
 from rest_framework import filters
+from rest_framework import permissions
 from rest_framework.decorators import action
 from .permissions import IsOwnerAuth, ModelViewSetsPermission
 from .models import *
@@ -23,12 +24,16 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import viewsets
 from rest_framework.decorators import action
-
+from django.core.files.base import ContentFile
 from rest_framework.generics import (
     ListAPIView,
     RetrieveAPIView,
     CreateAPIView,
     DestroyAPIView,
+    UpdateAPIView,
+)
+from rest_framework.mixins import (
+    UpdateModelMixin
 )
 
 from django_filters.rest_framework import DjangoFilterBackend
@@ -137,11 +142,12 @@ class ListPrinterView(viewsets.ModelViewSet):
     serializer_class = CreatePrinterSerializer
     filter_backends = (
         DjangoFilterBackend,
+        filters.SearchFilter,
         filters.OrderingFilter,
     )
-    search_fields = ("floor",)
-    ordering_fields = ("created_at",)
-    filter_fields = ("status",)
+    search_fields = ("floor","model_name")
+    ordering_fields = ("created_at",'page_remaining',)
+    filter_fields = ("status",'model_name')
     queryset = Printer.objects.all()
 
     # def list(self, request, *args, **kwargs):
@@ -230,12 +236,22 @@ class CreatePrinterAPIView(CreateAPIView):
         user = request.user
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(create_by=user)
+        serializer.save(created_by=user)
         # push_notifications(user, request.data["title"], "you have add a new printer")
         # if user.profile.phone_number:
         #     send_message(user.profile.phone_number, "Congratulations, you Created New Printer")
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+# class UpdatePrinterAPIView(UpdateModelMixin):
+#     permission_classes = [permissions.IsAuthenticated]
+#     serializer_class = UpdatePrinterSerializer
 
+#     def put(self, request,*args, **kwargs ):
+#         user = request.user
+#         serializer = self.get_serializer(data=request.data)
+#         if serializer.is_valid():
+#                 serializer.save(modified_by = user)
+#                 return Response(serializer.data)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class DestroyPrinterAPIView(DestroyAPIView):
     permission_classes = [IsOwnerAuth]
@@ -248,38 +264,140 @@ class DestroyPrinterAPIView(DestroyAPIView):
         instance.save()
         return Response({"detail": "Printer deleted"})
 
-
-class PrinterViewsAPIView(ListAPIView):
-    # permission_classes = [IsOwnerAuth]
-    serializer_class = PrinterViewsSerializer
-    queryset = PrinterViews.objects.all()
-
-
 class PrinterDetailView(APIView):
-
     def get(self, request, pk):
-        printer = Printer.objects.get(id=pk)
-        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(",")[0]
-        else:
-            ip = request.META.get("REMOTE_ADDR")
-
-        if not PrinterViews.objects.filter(printer=printer, ip=ip).exists():
-            PrinterViews.objects.create(printer=printer, ip=ip)
-
-
-            printer.save()
-        serializer = PrinterDetailSerializer(printer, context={"request": request})
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
+        printer = self.get_object(id = pk)
+        if printer:
+            serializer = PrinterSerializer(printer)
+            return Response(serializer.data)
+        return Response({"detail": "Printer not found"}, status=status.HTTP_404_NOT_FOUND)
+    def update(self, request, pk):
+        printer = self.get_object(id=pk)
+        if printer:
+            # Use a serializer that only allows updating 'status' and 'pages_remaining'
+            serializer = UpdatePrinterSerializer(printer, data=request.data, partial=True)
+            if serializer.is_valid():
+                user = request.user
+                serializer.save(modified_by= user)
+                
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": "Printer not found"}, status=status.HTTP_404_NOT_FOUND)
     def put(self, request, pk):
-        printer = get_object_or_404(Printer, pk=pk)
+        printer = self.get_object(id = pk)
+        if printer:
+            serializer = PrinterSerializer(printer, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": "Printer not found"}, status=status.HTTP_404_NOT_FOUND)
+    def delete(self, request, pk):
+        printer = self.get_object(id = pk)
+        if printer:
+            # Change status to Offline instead of deleting
+            printer.status = Printer.OFFLINE
+            printer.save()
+            return Response({"detail": "Printer set to Offline"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"detail": "Printer not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = PrinterDetailSerializer(
-            printer, data=request.data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+class FileUploadView(APIView):
+    def get(self, request, format=None):
+        file_upload_data = request.session.get('file_upload_data', None)
+
+        if file_upload_data is None:
+            # Provide a default response when session data is not found
+            default_response = {"message": "Session data not available"}
+            return Response(default_response)
+
+        response_data = {
+            "file_upload_data": {
+                "file_upload": file_upload_data.get('file_upload'),
+                "pagenumber": file_upload_data.get('pagenumber'),
+            },
+        }
+        return Response(response_data)
+
+    def post(self, request, format=None):
+        serializer = FileuploadSerializer(data=request.data)
+
+        if serializer.is_valid():
+            # Store file information in the session
+            file_upload = request.FILES['file_upload']
+            file_upload_data = {
+                'file_upload': {
+                    'name': file_upload.name,
+                    'size': file_upload.size,
+                    'content_type': file_upload.content_type,
+                    'base64_content': base64.b64encode(file_upload.read()).decode('utf-8'),
+                },
+                'pagenumber': serializer.validated_data['pagenumber'],
+            }
+            request.session['file_upload_data'] = file_upload_data
+            return Response(serializer.data,status=201)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PrinterOrderView(APIView):
+    def get(self, request, format=None):
+        file_upload_data = request.session.get('file_upload_data', None)
+
+        if not file_upload_data or not file_upload_data.get('file_upload'):
+            return Response({"error": "File upload data not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Retrieve printers with pageremaining > pagenumber
+        printers = Printer.objects.filter(pages_remaining__gte=file_upload_data['pagenumber'])
+
+        # Serialize the printers
+        printer_serializer = PrinterSerializer(printers, many=True)
+
+        # Include file information in the response
+        response_data = {
+            "file_upload_data": {
+                "file_upload": file_upload_data['file_upload'],
+                "pagenumber": file_upload_data['pagenumber'],
+            },
+            "printers": printer_serializer.data,
+        }
+
+        return Response(response_data)
+
+    def post(self, request, format=None):
+        file_upload_data = request.session.get('file_upload_data', None)
+
+        if not file_upload_data or not file_upload_data.get('file_upload'):
+            return Response({"error": "File upload data not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+        base64_content = file_upload_data['file_upload']['base64_content']
+
+        # Giải mã nội dung từ Base64
+        decoded_content = base64.b64decode(base64_content)
+
+        file_name = file_upload_data['file_upload']['name']
+        file_size = file_upload_data['file_upload']['size']
+        content_type = file_upload_data['file_upload']['content_type']
+        file_content = ContentFile(decoded_content, name=file_name)
+        submitdata = request.data
+        submitdata['file_upload'] = file_content
+
+        # Serialize the request data using OrderPrinterSerializer
+        serializer = OrderPrinterSerializer(data=submitdata)
+
+        if serializer.is_valid():
+            # Create a new print order
+            order_printer = serializer.save()
+
+            # Update the corresponding printer's pages_remaining
+            printer_id = int(request.data.get('printer'))
+            printer = Printer.objects.get(pk=printer_id)
+            printer.pages_remaining -= int(request.data.get('pages'))
+            printer.save()
+
+
+
+            # Return a success response
+            return Response({"message": "Print order submitted successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
+
+        else:
+            # Return an error response if the serializer data is invalid
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

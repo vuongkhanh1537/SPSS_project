@@ -41,6 +41,7 @@ img {
 button {
     border: 0;
     outline: none;
+    background-color: transparent;
 }
 
 input {
@@ -50,4 +51,17 @@ input {
     &::placeholder {
         font-size: 16px;
     }
+}
+
+.bttn {
+    background-color: #3b82f6;
+    color: #fff;
+    transition: all 0.3s linear;
+    cursor: pointer;
+    letter-spacing: var(--letter-spacing);
+    font-family: 'Livvic', sans-serif;
+}
+
+.bttn:hover {
+    background-color: #1d4ed8;
 }

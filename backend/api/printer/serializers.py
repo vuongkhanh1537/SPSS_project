@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import ModelPrinter, Feature, OrderPrinter, Printer, Floor, Building, Institution, PrinterViews
+from .models import ModelPrinter, Feature, OrderPrinter, Printer, Floor, Building, Institution
 
 
 class FeatureSerializer(serializers.ModelSerializer):
@@ -17,12 +17,13 @@ class FeatureSerializer(serializers.ModelSerializer):
 
 class ModelPrinterSerializer(serializers.ModelSerializer):
     features = FeatureSerializer(many=True)
-
+    
     class Meta:
         model = ModelPrinter
         fields = [
             "id",
             "model",
+            "page_per_min"
             "created_by",
             "features",
         ]
@@ -100,7 +101,10 @@ class CreatePrinterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Printer
         exclude = ("updated_at",)
-
+class UpdatePrinterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Printer
+        fields = ['status', 'pages_remaining']
 
 class PrinterDetailSerializer(serializers.ModelSerializer):
     model = serializers.SerializerMethodField()
@@ -114,13 +118,20 @@ class PrinterDetailSerializer(serializers.ModelSerializer):
         exclude = "updated_at"
 
 
-class PrinterViewsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PrinterViews
-        exclude = "updated_at"
-
 class OrderPrinterSerializer(serializers.Serializer):
     class Meta:
         model = OrderPrinter
         fields = '__all__'
         read_only_fields = ('ink_status', 'model')
+
+class PrinterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Printer
+        fields = '__all__'
+class OrderPrinterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderPrinter
+        fields = '__all__'
+class FileuploadSerializer(serializers.Serializer):
+    file_upload=serializers.FileField()
+    pagenumber=serializers.IntegerField()

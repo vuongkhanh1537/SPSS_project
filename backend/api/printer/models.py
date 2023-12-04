@@ -13,7 +13,8 @@ from mptt.models import MPTTModel, TreeForeignKey
 class ObjectTracking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING,related_name='created_by')
+    modified_by = models.ForeignKey(settings.AUTH_USER_MODEL,null = True, on_delete=models.DO_NOTHING, related_name='modified_by')
     class Meta:
         abstract = True
         ordering = ('-created_at',)
@@ -22,10 +23,11 @@ class ModelPrinterManager(models.Manager):
     def all_objects(self):
         return super().get_queryset()
 
-class ModelPrinter(ObjectTracking):
+class ModelPrinter(models.Model):
     model = models.CharField(max_length=12,null=False, blank=False)
-    created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.DO_NOTHING)
-    
+    page_per_min = models.PositiveIntegerField(default = 18)
+    created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.DO_NOTHING,related_name='model_created_by')
+    modified_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.DO_NOTHING, related_name='model_modified_by')
     objects = ModelPrinterManager()
 
     def __str__(self):
@@ -93,7 +95,7 @@ class PrinterStatus(models.IntegerChoices):
     BUSY = 5, 'Busy'
     MAINTAINANCE=2, 'Maintenance'
     
-class Printer(models.Model):
+class Printer(ObjectTracking):
     # uuid = models.UUIDField(db_index=True, default=uuid.uuid4, editable=False)
     model = models.ForeignKey("ModelPrinter",  on_delete=models.CASCADE)       
     floor = models.ForeignKey(
@@ -106,6 +108,7 @@ class Printer(models.Model):
     
     # Add a field to store the floor description
     floor_description = models.CharField(max_length=255, blank=True, null=True)
+    model_name = models.CharField(max_length=255, blank=True, null=True)
     # def get_tongthoigian(self, orderprinter):
     #     oder_printer.objects.filter(printer = printer_id, is_printed = false)
     #     return sum(mayorde)
@@ -114,11 +117,34 @@ class Printer(models.Model):
         if self.floor:
             floor_description = f"{self.floor.building_code} - Tầng {self.floor.floor_code}"
             self.floor_description = floor_description
+        if self.model:
+            self.model_name = self.model.model
         super().save(*args, **kwargs)
+    order_queue = deque()
 
+    def add_to_queue(self, order):
+        """
+        Add an order to the printer's queue.
+        """
+        self.order_queue.append(order)
+
+    def process_next_order(self):
+        """
+        Process the next order in the queue.
+        """
+        if self.order_queue:
+            next_order = self.order_queue.popleft()
+            next_order.print_date = timezone.now()
+            next_order.is_printed = True
+            next_order.save()
+            self.pages_remaining -= next_order.pages
+            self.ink_status = False  # Update ink status or any other relevant attributes
+            self.save()
+            return next_order
+        else:
+            return None
     def __str__(self):
         return f"{self.model} - {self.floor_description}"
-    
 class PrinterViews(ObjectTracking):
     ip = models.CharField(max_length=250)
     printer = models.ForeignKey(
@@ -140,9 +166,12 @@ class OrderPrinter(models.Model):
     pages =  models.PositiveIntegerField()
     
     # @property
+
     def get_time(self):
         return str(self.pages*2)
-    
+    def cal_time_required(self):
+        return self.pages / self.printer.model.page_per_min
+
     # def get_pdf_page_count(path):
     #     with open(path, 'rb') as fl:
     #         reader = PdfFileReader(fl)

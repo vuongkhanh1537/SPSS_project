@@ -10,6 +10,7 @@ from . import views
 from api.printer.views import *
 from api.auth.views import HelloWorldView
 from django.contrib.auth import views as auth_views
+
 # from .views import api_home
 router = DefaultRouter()
 router.register('model', ModelPrinterViewSet)
@@ -32,5 +33,5 @@ urlpatterns = [
     path('blacklist/', LogoutAndBlacklistRefreshTokenForUserView.as_view(), name='blacklist'),
     #printer
     path('printers/',include('api.printer.urls', namespace = 'printers')),
-    path('',include(router.urls))
+    path('',include(router.urls))   
 ]
