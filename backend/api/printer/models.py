@@ -8,6 +8,8 @@ from compositefk.fields import CompositeForeignKey
 # from viewflow.fields import CompositeKey
 from collections import OrderedDict
 from mptt.models import MPTTModel, TreeForeignKey
+
+
 class ObjectTracking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -74,7 +76,6 @@ class Building(models.Model):
     def __str__(self):
         return f"Cơ sở {self.inst} - Tòa {self.building}"
     def save(self, *args, **kwargs):
-        
         super().save(*args, **kwargs)
         if self.inst == 2:
             for floor in range(8):
@@ -117,6 +118,7 @@ class Printer(models.Model):
 
     def __str__(self):
         return f"{self.model} - {self.floor_description}"
+    
 class PrinterViews(ObjectTracking):
     ip = models.CharField(max_length=250)
     printer = models.ForeignKey(

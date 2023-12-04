@@ -19,6 +19,7 @@ model_list_view = ModelPrinterViewSet.as_view({
     "get": "list",
     "post": "create"
 })
+
 # router.register(r'printers', PrinterViewSet, basename='printer')
 urlpatterns = [
     
