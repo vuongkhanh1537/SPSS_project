@@ -136,7 +136,6 @@ class ModelPrinterAPIView(APIView):
             return Response(serializer.data, status=201)
         return Response(serializer.erros, status=400)
 
-
 class ListPrinterView(viewsets.ModelViewSet):
     # permission_classes = (ModelViewSetsPermission,)
     serializer_class = CreatePrinterSerializer
@@ -172,7 +171,6 @@ class ListPrinterView(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 class FloorListAPIView(ListAPIView):
     # permission_classes = [permissions.IsAuthenticated]
     serializer_class = FloorSerializer
@@ -246,7 +244,6 @@ class ListPrinterAPIView(ListAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-    
 class CreatePrinterAPIView(CreateAPIView):
     # permission_classes = [permissions.IsAuthenticated]
     serializer_class = CreatePrinterSerializer
@@ -284,6 +281,15 @@ class DestroyPrinterAPIView(DestroyAPIView):
         return Response({"detail": "Printer deleted"})
 
 class PrinterDetailView(APIView):
+    # authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, id):
+        try:
+            return Printer.objects.get(id=id)
+        except Printer.DoesNotExist:
+            return None
+
     def get(self, request, pk):
         printer = self.get_object(id = pk)
         if printer:

@@ -58,7 +58,6 @@ class ModelPrinterSerializer(serializers.ModelSerializer):
                 feature.delete()
 
         return instance
-    
 class BuildingSerializer(serializers.ModelSerializer):
     inst = serializers.ChoiceField(choices=Institution.choices)
 

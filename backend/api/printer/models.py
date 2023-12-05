@@ -8,8 +8,8 @@ from compositefk.fields import CompositeForeignKey
 # from viewflow.fields import CompositeKey
 from collections import OrderedDict
 from mptt.models import MPTTModel, TreeForeignKey
-
-
+from django.utils import timezone
+from collections import deque
 class ObjectTracking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -50,6 +50,7 @@ class Feature(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+
 class PrinterManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(status=1)
@@ -78,6 +79,7 @@ class Building(models.Model):
     def __str__(self):
         return f"Cơ sở {self.inst} - Tòa {self.building}"
     def save(self, *args, **kwargs):
+        
         super().save(*args, **kwargs)
         if self.inst == 2:
             for floor in range(8):
@@ -87,7 +89,6 @@ class Building(models.Model):
             for floor in range(5):
                 bldg = Floor(floor_code=floor, building_code=self)
                 bldg.save()
-                
 class PrinterStatus(models.IntegerChoices):
     ACTIVE = 1,'Active'
     OFFLINE = 3, 'Offline'
@@ -145,12 +146,7 @@ class Printer(ObjectTracking):
             return None
     def __str__(self):
         return f"{self.model} - {self.floor_description}"
-    
-class PrinterViews(ObjectTracking):
-    ip = models.CharField(max_length=250)
-    printer = models.ForeignKey(
-        Printer, related_name="printer_views", on_delete=models.CASCADE
-    )
+
 
 class OrderPrinter(models.Model):
     printer = models.ForeignKey('Printer', on_delete=models.SET_NULL, null=True, blank=True)
@@ -160,7 +156,6 @@ class OrderPrinter(models.Model):
     is_printed = models.BooleanField(default=False)
     print_date = models.DateTimeField(null=True, blank=True)
     is_cancelled = models.BooleanField(default=False)
-    
     # @property
     # def get_time(self):
     #     pass khi maf thang user kia xong thi thang nay moi tru
