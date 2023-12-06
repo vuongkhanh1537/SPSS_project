@@ -1,4 +1,5 @@
 import uuid
+from datetime import timedelta
 from django.db import models
 from django.conf import settings
 from api.auth.models import User
@@ -11,6 +12,7 @@ from collections import OrderedDict
 from mptt.models import MPTTModel, TreeForeignKey
 from django.utils import timezone
 from collections import deque
+from random import randint
 class ObjectTracking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -117,14 +119,21 @@ class Printer(ObjectTracking):
     #     oder_printer.objects.filter(printer = printer_id, is_printed = false)
     #     return sum(mayorde)
     def get_order(self):
-        total_time = 0
+        total_time_minutes = timedelta(minutes=randint(0,60))
 
         # Iterate through pending orders in the order queue
-        pending_orders = OrderPrinter.objects.filter(printer=self, is_printed=False, is_cancelled=False)
-        for order in pending_orders:
-            total_time += order.cal_time_required()
+        for order in self.order_queue:
+            total_time_minutes += order.cal_time_required().total_seconds() / 60
 
-        return total_time
+        # Convert total_time_minutes to a timedelta object
+        # total_time_delta = timedelta(minutes=total_time_minutes)
+
+        # Format the timedelta as HH:MM:SS
+        formatted_time = str(total_time_minutes)
+
+        return formatted_time
+
+
         
     # def clean(self):
     #     if self.pages_remaining > self.model.max_page_storage:
@@ -184,7 +193,12 @@ class OrderPrinter(models.Model):
     def get_time(self):
         return str(self.pages*2)
     def cal_time_required(self):
-        return self.pages / self.printer.model.page_per_min
+        time_in_minutes = self.pages / self.printer.model.page_per_min
+
+        # Convert time_in_minutes to a timedelta object
+        time_delta = timedelta(minutes=time_in_minutes)
+
+        return time_delta
 
     # def get_pdf_page_count(path):
     #     with open(path, 'rb') as fl:
