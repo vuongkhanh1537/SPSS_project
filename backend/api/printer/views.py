@@ -395,16 +395,18 @@ class PrinterOrderView(APIView):
 
         base64_content = file_upload_data['file_upload']['base64_content']
 
-        # Giải mã nội dung từ Base64
+        # Decode content from Base64
         decoded_content = base64.b64decode(base64_content)
 
         file_name = file_upload_data['file_upload']['name']
-        file_size = file_upload_data['file_upload']['size']
-        content_type = file_upload_data['file_upload']['content_type']
+        pages = file_upload_data['pagenumber']
         file_content = ContentFile(decoded_content, name=file_name)
-        submitdata = request.data
+
+        # Make a mutable copy of request.data
+        submitdata = request.data.copy()
         submitdata['file_upload'] = file_content
 
+        submitdata['file_name'] = file_name
         # Serialize the request data using OrderPrinterSerializer
         serializer = OrderPrinterSerializer(data=submitdata)
 
@@ -418,10 +420,9 @@ class PrinterOrderView(APIView):
             printer.pages_remaining -= int(request.data.get('pages'))
             printer.save()
 
-
-
             # Return a success response
-            return Response({"message": "Print order submitted successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
+            return Response({"message": "Print order submitted successfully", "data": serializer.data},
+                            status=status.HTTP_201_CREATED)
 
         else:
             # Return an error response if the serializer data is invalid
