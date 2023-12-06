@@ -1,14 +1,10 @@
 from rest_framework.permissions import BasePermission
 
 
-class IsOwnerAuth(BasePermission):
-    def has_object_permission(self, request, view, obj):
-        if obj.user == request.user:
-            return True
-        return False
+class IsStaff(BasePermission):
 
     def has_permission(self, request, view):
-        if request.user and request.user.is_authenticated:
+        if request.user.is_staff:
             return True
         return False
 

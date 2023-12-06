@@ -17,7 +17,7 @@ from rest_framework import mixins
 from rest_framework import filters
 from rest_framework import permissions
 from rest_framework.decorators import action, api_view
-from .permissions import IsOwnerAuth, ModelViewSetsPermission
+from .permissions import IsStaff, ModelViewSetsPermission
 from .models import *
 from .serializers import *
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
@@ -138,16 +138,18 @@ class ModelPrinterAPIView(APIView):
 
 class ListPrinterView(viewsets.ModelViewSet):
     # permission_classes = (ModelViewSetsPermission,)
-    serializer_class = CreatePrinterSerializer
+    authentication_classes = [TokenAuthentication, SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated, IsStaff]
+    serializer_class = PrinterSerializer
     filter_backends = (
         DjangoFilterBackend,
         filters.SearchFilter,
         filters.OrderingFilter,
     )
     search_fields = ("floor","model_name")
-    ordering_fields = ("created_at",'page_remaining',)
+    ordering_fields = ("created_at",'pages_remaining',)
     filter_fields = ("status",'model_name')
-    queryset = Printer.objects.all()
+    queryset = Printer.objects.all_objects()
 
     # def list(self, request, *args, **kwargs):
     #     queryset = self.filter_queryset(self.get_queryset())
@@ -160,6 +162,10 @@ class ListPrinterView(viewsets.ModelViewSet):
     # authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+    def all_objects(self,request):
+        printers = Printer.objects.all()
+        serializer = PrinterSerializer(printers, many=True)
+        return Response(serializer.data)
     def get(self, request):
         printers = Printer.objects.all()
         serializer = PrinterSerializer(printers, many=True)
@@ -173,6 +179,7 @@ class ListPrinterView(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class FloorListAPIView(ListAPIView):
     # permission_classes = [permissions.IsAuthenticated]
+
     serializer_class = FloorSerializer
     filter_backends = (
         DjangoFilterBackend,
@@ -200,6 +207,8 @@ class FloorAPIView(RetrieveAPIView):
         return Response(serializer.data)
 
 class UpdatePagesRemainingAPIView(APIView):
+    authentication_classes = [TokenAuthentication, SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated, IsStaff]
     def get_object(self, pk):
         try:
             return Printer.objects.get(pk=pk)
@@ -220,15 +229,17 @@ class UpdatePagesRemainingAPIView(APIView):
         return Response({"detail": "Printer not found"}, status=status.HTTP_404_NOT_FOUND)
     
 class ListPrinterAPIView(ListAPIView):
+    authentication_classes = [TokenAuthentication, SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     serializer_class = PrinterSerializer
     filter_backends = (
         DjangoFilterBackend,
         filters.SearchFilter,
         filters.OrderingFilter,
     )
-    search_fields = ("floor_description",)
-    ordering_fields = ("created_at",) # change related at to time remaining
-    filter_fields = ("status",)
+    search_fields = ("floor","model_name")
+    ordering_fields = ("created_at",'pages_remaining',)
+    filter_fields = ("status",'model_name')
     queryset = Printer.objects.all()
 
     # Cache requested url for each user for 2 hours
@@ -246,6 +257,8 @@ class ListPrinterAPIView(ListAPIView):
         return Response(serializer.data)
 class CreatePrinterAPIView(CreateAPIView):
     # permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication, SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated, IsStaff]
     serializer_class = CreatePrinterSerializer
 
     def create(self, request, *args, **kwargs):
@@ -270,7 +283,8 @@ class CreatePrinterAPIView(CreateAPIView):
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class DestroyPrinterAPIView(DestroyAPIView):
-    permission_classes = [IsOwnerAuth]
+    authentication_classes = [TokenAuthentication, SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated, IsStaff]
     serializer_class = PrinterDetailSerializer
     queryset = Printer.objects.all()
 
@@ -282,6 +296,7 @@ class DestroyPrinterAPIView(DestroyAPIView):
 
 class PrinterDetailView(APIView):
     # authentication_classes = [TokenAuthentication]
+    authentication_classes = [TokenAuthentication, SessionAuthentication, BasicAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get_object(self, id):
@@ -327,6 +342,8 @@ class PrinterDetailView(APIView):
         return Response({"detail": "Printer not found"}, status=status.HTTP_404_NOT_FOUND)
 
 class FileUploadView(APIView):
+    authentication_classes = [TokenAuthentication, SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, format=None):
         file_upload_data = request.session.get('file_upload_data', None)
 
@@ -364,6 +381,8 @@ class FileUploadView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PrinterOrderView(APIView):
+    authentication_classes = [TokenAuthentication, SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, format=None):
         file_upload_data = request.session.get('file_upload_data', None)
 

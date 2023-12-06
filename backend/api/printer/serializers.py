@@ -76,14 +76,15 @@ class FloorSerializer(serializers.ModelSerializer):
         return BuildingSerializer(obj.building_code).data
 
 
-class PrinterSerializer(serializers.ModelSerializer):
-    floor = serializers.SerializerMethodField()
-    
-    def get_floor(self, obj):
-        return obj.floor.floor_code
-    class Meta:
-        model = Printer
-        fields = '__all__'
+# class PrinterSerializer(serializers.ModelSerializer):
+#     # floor = serializers.SerializerMethodField()
+
+#     def get_total_order_time(self,obj):
+#         return obj.get_order()
+
+#     class Meta:
+#         model = Printer
+#         fields = ('id', 'model', 'get_order')
 
 class PrinterMiniSerializer(serializers.ModelSerializer):
     class Meta:
@@ -124,9 +125,12 @@ class OrderPrinterSerializer(serializers.Serializer):
         read_only_fields = ('ink_status', 'model')
 
 class PrinterSerializer(serializers.ModelSerializer):
+    total_order_duration = serializers.SerializerMethodField()
     class Meta:
         model = Printer
-        fields = '__all__'
+        fields = fields = ('id', 'model', 'floor', 'pages_remaining', 'ink_status', 'status', 'floor_description', 'model_name', 'total_order_duration')
+    def get_total_order_duration(self, obj):
+        return obj.get_order()
 class OrderPrinterSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderPrinter

@@ -19,5 +19,4 @@ urlpatterns = [
     path("<pk>/", views.PrinterDetailView.as_view()),
     path('file-upload/', views.FileUploadView.as_view()),
     path('printer-order/', views.PrinterOrderView.as_view()),
-
 ]

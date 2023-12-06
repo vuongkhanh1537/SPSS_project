@@ -5,6 +5,7 @@ from api.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
 from compositefk.fields import CompositeForeignKey
+from django.core.exceptions import ValidationError
 # from viewflow.fields import CompositeKey
 from collections import OrderedDict
 from mptt.models import MPTTModel, TreeForeignKey
@@ -26,6 +27,7 @@ class ModelPrinterManager(models.Manager):
 class ModelPrinter(models.Model):
     model = models.CharField(max_length=12,null=False, blank=False)
     page_per_min = models.PositiveIntegerField(default = 18)
+    max_page_storage = models.PositiveIntegerField(default = 250)
     created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.DO_NOTHING,related_name='model_created_by')
     modified_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.DO_NOTHING, related_name='model_modified_by')
     objects = ModelPrinterManager()
@@ -110,9 +112,24 @@ class Printer(ObjectTracking):
     # Add a field to store the floor description
     floor_description = models.CharField(max_length=255, blank=True, null=True)
     model_name = models.CharField(max_length=255, blank=True, null=True)
+    order_queue = models.ManyToManyField(User, related_name='user-order', blank=True, through='OrderPrinter')
     # def get_tongthoigian(self, orderprinter):
     #     oder_printer.objects.filter(printer = printer_id, is_printed = false)
     #     return sum(mayorde)
+    def get_order(self):
+        total_time = 0
+
+        # Iterate through pending orders in the order queue
+        pending_orders = OrderPrinter.objects.filter(printer=self, is_printed=False, is_cancelled=False)
+        for order in pending_orders:
+            total_time += order.cal_time_required()
+
+        return total_time
+        
+    # def clean(self):
+    #     if self.pages_remaining > self.model.max_page_storage:
+    #         raise ValidationError({'pages_remaining':('Số trang còn lại không thể lớn hơn số trang tối đa khay có thể chứa')})
+    
     def save(self, *args, **kwargs):
         # Get the floor description from the related Floor object
         if self.floor:
