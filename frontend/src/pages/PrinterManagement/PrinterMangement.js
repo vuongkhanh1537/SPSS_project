@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Button, Stack } from '@mui/material';
 import {DataGrid} from '@mui/x-data-grid'; 
-import { fetchPrinters } from '../../features/services/printer-management-services';
+import { fetchLocation, fetchPrinters, updatePageRemains } from '../../features/services/printer-management-services';
+import { useNavigate } from 'react-router-dom';
 function PrinterMangement() {
+  const navigate = useNavigate();
   const status = ["Đang hoạt động", "Bảo trì", , "Ngưng hoạt động", "Gặp sự cố", "Bận"];
   const columns = [
     { field: 'id', headerName: 'ID', width: 90, },
@@ -42,7 +44,7 @@ function PrinterMangement() {
   },
   ];
   const [rows, setRows] = useState([]);
-
+  const [selectionModel, setSelectionModel] = useState([]); 
 
   useEffect(() => {
     getPrinters();
@@ -55,11 +57,12 @@ function PrinterMangement() {
       setRows(res.data);
     }
   }
-  const [selectionModel, setSelectionModel] = useState([]); 
 
-  const handleAddClick= () => {
 
-  }  
+
+  const addPage = async (id) => {
+    let res = await updatePageRemains(id);
+  }
 
   const handleDeleteClick = () => {
 
@@ -70,6 +73,10 @@ function PrinterMangement() {
   }
 
   const handleRowClick = () => {
+
+  }
+
+  const handleAddPage =  () => {
 
   }
 
@@ -85,7 +92,7 @@ function PrinterMangement() {
         <Stack direction="row" spacing={2}>
           <Button 
             variant='outlined'
-            onClick={handleAddClick}
+            onClick={() => {navigate("/add-printer")}}
           >Thêm máy in</Button>
           <Button 
             variant="outlined" 
@@ -99,6 +106,12 @@ function PrinterMangement() {
             disabled={selectionModel.length === 0}
             onClick={handleStatusToggleClick}
           >Bật / Tắt</Button>
+          <Button 
+            variant="outlined" 
+            color="warning"
+            disabled={selectionModel.length === 0}
+            onClick={handleAddPage}
+          >Thêm giấy in</Button>
         </Stack>
       </Box>
       <DataGrid 
